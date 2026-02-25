@@ -4,143 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Persona Burger Self-Ordering Kiosk</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
         
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            overflow: hidden;
-            background-color: #111;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            overflow: hidden; 
+            background-color: #050505; 
+            user-select: none; 
+            -webkit-tap-highlight-color: transparent; 
+            color: white; 
         }
-
-        /* 隱藏滾動條 */
+        
         ::-webkit-scrollbar { display: none; }
 
-        /* 掃描動畫 */
-        @keyframes scan {
-            0% { top: 0%; opacity: 0; }
-            50% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
+        /* 掃描線動畫 */
+        @keyframes scan { 
+            0% { top: 0%; opacity: 0; } 
+            50% { opacity: 1; } 
+            100% { top: 100%; opacity: 0; } 
         }
-        .scan-line {
-            height: 4px;
-            background: linear-gradient(to right, transparent, #fbbf24, transparent);
-            position: absolute;
-            width: 100%;
-            animation: scan 2s linear infinite;
-        }
-
-        /* 輕微浮動效果 */
-        .floating {
-            animation: floating 4s ease-in-out infinite;
-        }
-        @keyframes floating {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
+        .scan-line { 
+            height: 4px; 
+            background: linear-gradient(to right, transparent, #fbbf24, transparent); 
+            position: absolute; 
+            width: 100%; 
+            animation: scan 2s linear infinite; 
         }
 
-        /* 結帳按鈕波浪效果 */
-        .btn-pulse {
-            animation: pulse-green 2s infinite;
-        }
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-            70% { box-shadow: 0 0 0 20px rgba(34, 197, 94, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        /* 浮動效果 */
+        .floating { animation: floating 4s ease-in-out infinite; }
+        @keyframes floating { 
+            0%, 100% { transform: translateY(0px); } 
+            50% { transform: translateY(-10px); } 
         }
 
-        /* Logo 容器通用樣式 */
-        .logo-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+        /* 結帳按鈕提示波浪 */
+        .btn-pulse { animation: pulse-green 2s infinite; }
+        @keyframes pulse-green { 
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 
+            70% { box-shadow: 0 0 0 20px rgba(34, 197, 94, 0); } 
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } 
+        }
+
+        /* Logo 容器比例 */
+        .logo-box img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; 
+            filter: drop-shadow(0 0 8px rgba(255,255,255,0.15)); 
         }
     </style>
 </head>
-<body class="w-full h-screen text-white">
+<body>
 
-    <!-- 隱藏的管理員重置按鈕 (右上角) -->
-    <div onclick="resetSystem()" class="fixed top-0 right-0 w-20 h-20 z-[999] opacity-0 cursor-default"></div>
+    <!-- 隱藏重置按鈕 -->
+    <div onclick="resetSystem()" class="fixed top-0 right-0 w-20 h-20 z-[999] opacity-0"></div>
 
-    <div id="app" class="w-full h-full relative">
-        <!-- 此處將由 JS 動態渲染內容 -->
-    </div>
+    <div id="app" class="w-full h-full relative"></div>
 
     <script>
-        // --- 設定與多語系字典 ---
         const LANGUAGES = {
-            zh: {
-                start: "點擊開始訂餐",
-                brand: "Persona Burger",
-                selectOrderType: "請選擇用餐方式",
-                dineIn: "內用",
-                takeOut: "外帶",
-                categories: { burgers: "經典漢堡", snacks: "精選副食", drinks: "沁涼飲品", desserts: "法式甜點" },
-                currency: "NT$",
-                total: "總金額",
-                checkout: "前往結帳",
-                back: "返回",
-                viewOrder: "確認訂單",
-                emptyCart: "購物車目前是空的",
-                paymentTitle: "選擇付款方式",
-                scanQR: "請掃描行動支付",
-                tapCard: "請感應信用卡/NFC",
-                processing: "交易處理中...",
-                orderSuccess: "訂單已完成！",
-                orderNumber: "取餐編號",
-                receiptInfo: "請拿取下方收據，依編號取餐",
-                items: "份餐點"
-            },
-            en: {
-                start: "Touch to Start",
-                brand: "Persona Burger",
-                selectOrderType: "Select Order Type",
-                dineIn: "Dine-in",
-                takeOut: "Take-out",
-                categories: { burgers: "Burgers", snacks: "Sides", drinks: "Drinks", desserts: "Desserts" },
-                currency: "$",
-                total: "Total",
-                checkout: "Checkout",
-                back: "Back",
-                viewOrder: "View Order",
-                emptyCart: "Empty Cart",
-                paymentTitle: "Select Payment",
-                scanQR: "Scan QR Code",
-                tapCard: "Tap Card / NFC",
-                processing: "Processing...",
-                orderSuccess: "Success!",
-                orderNumber: "Order ID",
-                receiptInfo: "Please take your receipt.",
-                items: "Items"
-            },
-            ja: {
-                start: "画面をタッチ",
-                brand: "Persona Burger",
-                selectOrderType: "お召し上がり方",
-                dineIn: "店内",
-                takeOut: "お持ち帰り",
-                categories: { burgers: "バーガー", snacks: "サイド", drinks: "ドリンク", desserts: "デザート" },
-                currency: "¥",
-                total: "合計",
-                checkout: "お会計",
-                back: "戻る",
-                viewOrder: "注文内容",
-                emptyCart: "カートは空です",
-                paymentTitle: "お支払い方法",
-                scanQR: "QRコード決済",
-                tapCard: "カード決済",
-                processing: "処理中...",
-                orderSuccess: "ありがとうございます",
-                orderNumber: "注文番号",
-                receiptInfo: "レシートをお取りください",
-                items: "品"
-            }
+            zh: { start: "點擊開始訂餐", brand: "Persona Burger", selectOrderType: "請選擇用餐方式", dineIn: "內用", takeOut: "外帶", categories: { burgers: "經典漢堡", snacks: "精選副食", drinks: "沁涼飲品", desserts: "法式甜點" }, currency: "NT$", total: "總金額", checkout: "前往結帳", back: "返回", viewOrder: "確認訂單", paymentTitle: "選擇付款方式", scanQR: "請掃描行動支付", tapCard: "請感應信用卡/NFC", processing: "交易處理中...", orderSuccess: "訂單已完成！", orderNumber: "取餐編號", receiptInfo: "請拿取下方收據，依編號取餐", items: "份餐點" },
+            en: { start: "Touch to Start", brand: "Persona Burger", selectOrderType: "Select Order Type", dineIn: "Dine-in", takeOut: "Take-out", categories: { burgers: "Burgers", snacks: "Sides", drinks: "Drinks", desserts: "Desserts" }, currency: "$", total: "Total", checkout: "Checkout", back: "Back", viewOrder: "View Order", paymentTitle: "Select Payment", scanQR: "Scan QR", tapCard: "Tap Card / NFC", processing: "Processing...", orderSuccess: "Success!", orderNumber: "Order ID", receiptInfo: "Please take your receipt.", items: "Items" },
+            ja: { start: "画面をタッチ", brand: "Persona Burger", selectOrderType: "お召し上がり方", dineIn: "店内", takeOut: "お持ち帰り", categories: { burgers: "バーガー", snacks: "サイド", drinks: "ドリンク", desserts: "デザート" }, currency: "¥", total: "合計", checkout: "お会計", back: "戻る", viewOrder: "注文内容", paymentTitle: "お支払い方法", scanQR: "QR決済", tapCard: "カード決済", processing: "処理中...", orderSuccess: "注文完了", orderNumber: "注文番号", receiptInfo: "レシートをお取りください", items: "品" }
         };
 
         const MENU_DATA = [
@@ -154,340 +83,165 @@
             { id: 8, category: 'desserts', name: { zh: '熔岩巧克力', en: 'Lava Cake', ja: 'ケーキ' }, price: { zh: 120, en: 4.0, ja: 550 }, img: '🧁' },
         ];
 
-        // --- 應用程式狀態 ---
-        let state = {
-            lang: 'zh',
-            step: 'landing', // landing, typeSelection, menu, payment, success
-            orderType: null,
-            activeCategory: 'burgers',
-            cart: [],
-            isCartOpen: false,
-            paymentStatus: 'idle',
-            orderId: null
-        };
-
+        let state = { lang: 'zh', step: 'landing', orderType: null, activeCategory: 'burgers', cart: [], isCartOpen: false, paymentStatus: 'idle', orderId: null };
         let idleTimer;
 
-        // --- 核心功能 ---
-        function setState(newState) {
-            state = { ...state, ...newState };
-            render();
-            resetIdleTimer();
+        // --- 核心邏輯 ---
+        function setState(newState) { state = { ...state, ...newState }; render(); resetIdleTimer(); }
+        
+        function resetIdleTimer() { 
+            clearTimeout(idleTimer); 
+            if (state.step !== 'landing') idleTimer = setTimeout(() => resetSystem(), 60000); 
+        }
+        
+        function resetSystem() { 
+            state = { lang: 'zh', step: 'landing', orderType: null, activeCategory: 'burgers', cart: [], isCartOpen: false, paymentStatus: 'idle', orderId: null }; 
+            render(); 
         }
 
-        function resetIdleTimer() {
-            clearTimeout(idleTimer);
-            if (state.step !== 'landing') {
-                idleTimer = setTimeout(() => resetSystem(), 60000);
-            }
+        function addToCartById(id) {
+            const product = MENU_DATA.find(p => p.id === id);
+            if (!product) return;
+            const ex = state.cart.find(i => i.id === id); 
+            if (ex) ex.qty++; else state.cart.push({ ...product, qty: 1 }); 
+            render(); 
         }
 
-        function resetSystem() {
-            state = {
-                lang: 'zh',
-                step: 'landing',
-                orderType: null,
-                activeCategory: 'burgers',
-                cart: [],
-                isCartOpen: false,
-                paymentStatus: 'idle',
-                orderId: null
-            };
-            render();
+        function updateQty(id, d) { 
+            const item = state.cart.find(i => i.id === id); 
+            if (item) { item.qty += d; if (item.qty <= 0) state.cart = state.cart.filter(i => i.id !== id); } 
+            render(); 
         }
 
-        function addToCart(product) {
-            const existing = state.cart.find(i => i.id === product.id);
-            if (existing) {
-                existing.qty++;
-            } else {
-                state.cart.push({ ...product, qty: 1 });
-            }
-            render();
-        }
-
-        function updateQty(id, delta) {
-            const item = state.cart.find(i => i.id === id);
-            if (item) {
-                item.qty += delta;
-                if (item.qty <= 0) {
-                    state.cart = state.cart.filter(i => i.id !== id);
-                }
-            }
-            render();
-        }
-
-        function startPayment() {
+        function simulatePayment() {
             setState({ paymentStatus: 'processing' });
             setTimeout(() => {
-                setState({ step: 'success', orderId: Math.floor(Math.random() * 900) + 100, paymentStatus: 'idle' });
+                setState({
+                    step: 'success',
+                    orderId: Math.floor(Math.random() * 900) + 100,
+                    paymentStatus: 'idle'
+                });
             }, 3000);
         }
 
-        // --- Logo 渲染輔助函式 ---
+        // --- Logo 渲染優化 (修正語法錯誤：避免 nested quotes) ---
         function getLogoHTML(type = 'large') {
-            const sizeClass = type === 'large' ? 'w-[450px] h-32' : 'w-40 h-16';
-            const textClass = type === 'large' ? 'text-4xl' : 'text-xl';
-            return `
-                <div class="logo-container ${sizeClass} flex items-center justify-center">
-                    <img src="logo.png" alt="Persona Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                    <span class="hidden ${textClass} font-black text-amber-500 uppercase tracking-widest">${LANGUAGES[state.lang].brand}</span>
-                </div>
-            `;
+            const size = type === 'large' ? 'w-[500px] h-32' : 'w-40 h-12';
+            const brandTextClass = type === 'large' ? 'text-3xl' : 'text-base';
+            return `<div class="logo-box ${size} flex items-center justify-center relative">
+                        <img src="logo.png" alt="Persona Logo" class="logo-img" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                        <span class="hidden ${brandTextClass} font-black text-amber-500 uppercase tracking-[0.3em]">${LANGUAGES[state.lang].brand}</span>
+                    </div>`;
         }
 
-        // --- UI 渲染 ---
         function render() {
             const app = document.getElementById('app');
             const t = LANGUAGES[state.lang];
-            const totalPrice = state.cart.reduce((sum, item) => sum + (item.price[state.lang] * item.qty), 0).toFixed(state.lang === 'en' ? 2 : 0);
+            const totalPrice = state.cart.reduce((s, i) => s + (i.price[state.lang] * i.qty), 0).toFixed(state.lang === 'en' ? 2 : 0);
 
-            // 1. Landing Screen (首頁)
+            // 1. Landing Screen
             if (state.step === 'landing') {
-                app.innerHTML = `
-                    <div onclick="setState({step:'typeSelection'})" class="w-full h-full flex flex-col items-center justify-center bg-black cursor-pointer">
-                        <div class="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1571091718767-18b5b1457add?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center"></div>
-                        <div class="z-10 flex flex-col items-center">
-                            <div class="mb-12 floating">
-                                ${getLogoHTML('large')}
-                            </div>
-                            <p class="text-3xl font-bold tracking-[0.5em] animate-pulse text-white/80">${t.start}</p>
+                app.innerHTML = `<div onclick="setState({step:'typeSelection'})" class="w-full h-full flex flex-col items-center justify-center bg-black cursor-pointer">
+                    <div class="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1965&auto=format&fit=crop')] bg-cover bg-center"></div>
+                    <div class="z-10 flex flex-col items-center">
+                        <div class="mb-16 floating">${getLogoHTML('large')}</div>
+                        <p class="text-2xl font-bold tracking-[0.8em] animate-pulse text-white/60 uppercase">${t.start}</p>
+                    </div>
+                    <div class="absolute bottom-16 flex space-x-6 z-10">
+                        ${['zh', 'en', 'ja'].map(l => `<button onclick="event.stopPropagation(); setState({lang:'${l}'})" class="px-10 py-4 rounded-full border-2 transition-all ${state.lang === l ? 'bg-amber-500 border-amber-500 text-black font-black scale-105' : 'border-white/20 text-white/40'}">${l.toUpperCase()}</button>`).join('')}
+                    </div>
+                </div>`;
+            }
+            
+            // 2. Type Selection
+            else if (state.step === 'typeSelection') {
+                app.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center bg-[#050505] p-12">
+                    <div class="mt-4 mb-12 opacity-80 scale-90">${getLogoHTML('small')}</div>
+                    <h2 class="text-4xl font-black mb-12 uppercase tracking-widest text-white/90">${t.selectOrderType}</h2>
+                    <div class="flex space-x-12">
+                        <div onclick="setState({orderType:'dineIn', step:'menu'})" class="w-[400px] h-[450px] bg-zinc-900/40 rounded-[4rem] flex flex-col items-center justify-center border-4 border-zinc-800 hover:border-amber-500 transition-all cursor-pointer group shadow-2xl">
+                            <i data-lucide="utensils" class="w-28 h-28 mb-8 text-amber-500 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-3xl font-black">${t.dineIn}</span>
                         </div>
-                        <div class="absolute bottom-16 flex space-x-6 z-10">
-                            ${['zh', 'en', 'ja'].map(l => `
-                                <button onclick="event.stopPropagation(); setState({lang:'${l}'})" class="px-8 py-4 rounded-full border-2 transition-all ${state.lang === l ? 'bg-amber-500 border-amber-500 text-black font-black scale-110 shadow-lg' : 'border-white/30 text-white/60'}">
-                                    ${LANGUAGES[l].language || l.toUpperCase()}
-                                </button>
+                        <div onclick="setState({orderType:'takeOut', step:'menu'})" class="w-[400px] h-[450px] bg-zinc-900/40 rounded-[4rem] flex flex-col items-center justify-center border-4 border-zinc-800 hover:border-amber-500 transition-all cursor-pointer group shadow-2xl">
+                            <i data-lucide="shopping-bag" class="w-28 h-28 mb-8 text-amber-500 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-3xl font-black">${t.takeOut}</span>
+                        </div>
+                    </div>
+                    <button onclick="setState({step:'landing'})" class="mt-12 text-zinc-600 font-bold text-lg hover:text-white flex items-center transition-colors"><i data-lucide="arrow-left" class="mr-2"></i> ${t.back}</button>
+                </div>`;
+            }
+            
+            // 3. Menu Screen
+            else if (state.step === 'menu') {
+                app.innerHTML = `<div class="w-full h-full flex bg-black">
+                    <aside class="w-56 border-r border-zinc-900 flex flex-col bg-zinc-950">
+                        <div class="py-8 flex justify-center scale-75">${getLogoHTML('small')}</div>
+                        <nav class="flex-1 flex flex-col">
+                            ${Object.keys(t.categories).map(key => `<button onclick="setState({activeCategory:'${key}'})" class="flex-1 flex flex-col items-center justify-center border-l-8 transition-all ${state.activeCategory === key ? 'border-amber-500 bg-zinc-900 text-amber-500' : 'border-transparent text-zinc-600 hover:text-white'}"><span class="text-base font-black uppercase tracking-widest px-4 text-center">${t.categories[key]}</span></button>`).join('')}
+                        </nav>
+                        <button onclick="resetSystem()" class="p-8 text-zinc-700 hover:text-white flex flex-col items-center transition-colors"><i data-lucide="refresh-cw" class="mb-1 w-5 h-5"></i><span class="text-[10px] font-bold uppercase">${t.back}</span></button>
+                    </aside>
+                    <main class="flex-1 flex flex-col relative overflow-hidden bg-zinc-950">
+                        <header class="h-24 px-12 flex items-center justify-between border-b border-zinc-900 bg-black/40 backdrop-blur-xl">
+                            <div class="flex items-center space-x-5">
+                                <span class="bg-amber-500 text-black px-4 py-1 rounded text-xs font-black uppercase">${state.orderType === 'dineIn' ? t.dineIn : t.takeOut}</span>
+                                <h2 class="text-3xl font-black uppercase tracking-tighter text-white/90">${t.categories[state.activeCategory]}</h2>
+                            </div>
+                            <div class="flex space-x-2">
+                                ${['zh', 'en', 'ja'].map(l => `<button onclick="setState({lang:'${l}'})" class="w-12 h-12 rounded-full border-2 transition-all ${state.lang === l ? 'bg-amber-500 border-amber-500 text-black font-black' : 'border-zinc-800 text-zinc-600 hover:border-zinc-500'}">${l.toUpperCase()}</button>`).join('')}
+                            </div>
+                        </header>
+                        <div class="flex-1 overflow-y-auto p-12 grid grid-cols-4 gap-8 content-start pb-52">
+                            ${MENU_DATA.filter(i => i.category === state.activeCategory).map(item => `
+                                <div onclick="addToCartById(${item.id})" class="bg-zinc-900/30 rounded-[2.5rem] p-8 flex flex-col items-center text-center hover:bg-zinc-900 hover:scale-105 active:scale-95 transition-all border-2 border-transparent hover:border-amber-500 cursor-pointer shadow-xl">
+                                    <div class="text-[90px] mb-8">${item.img}</div>
+                                    <h3 class="text-xl font-bold mb-2 h-12 leading-tight">${item.name[state.lang]}</h3>
+                                    <p class="text-3xl font-black text-amber-500">${t.currency}${item.price[state.lang]}</p>
+                                </div>
                             `).join('')}
                         </div>
-                    </div>
+                        ${state.cart.length > 0 ? `<div class="absolute bottom-8 left-8 right-8"><div onclick="setState({isCartOpen:true})" class="h-24 bg-green-600 rounded-[2rem] flex items-center justify-between px-10 shadow-2xl cursor-pointer btn-pulse transition-transform active:scale-95"><div class="flex items-center"><div class="relative mr-6"><i data-lucide="shopping-cart" class="w-10 h-10"></i><span class="absolute -top-3 -right-3 bg-amber-500 text-black w-8 h-8 rounded-full flex items-center justify-center font-black text-base border-2 border-green-600">${state.cart.reduce((a, b) => a + b.qty, 0)}</span></div><span class="text-3xl font-black uppercase tracking-widest">${t.viewOrder}</span></div><div class="text-4xl font-black">${t.currency}${totalPrice}</div></div></div>` : ''}
+                    </main>
+                </div>
+                ${state.isCartOpen ? `<div class="fixed inset-0 z-50 flex items-center justify-center p-10 bg-black/90 backdrop-blur-2xl"><div class="bg-zinc-900 w-full max-w-4xl rounded-[4rem] shadow-2xl flex flex-col max-h-[85vh] border border-zinc-800"><div class="p-10 border-b border-zinc-800 flex justify-between items-center"><h3 class="text-4xl font-black uppercase flex items-center"><i data-lucide="shopping-cart" class="mr-6 text-amber-500 w-10 h-10"></i>${t.viewOrder}</h3><button onclick="setState({isCartOpen:false})" class="p-4 bg-zinc-800 rounded-full hover:bg-zinc-700 transition-colors"><i data-lucide="x" class="w-8 h-8"></i></button></div><div class="flex-1 overflow-y-auto p-10 space-y-6">${state.cart.map(item => `<div class="flex items-center bg-black/30 p-6 rounded-[2rem] border border-zinc-800"><div class="text-6xl mr-10">${item.img}</div><div class="flex-1"><h4 class="text-2xl font-bold">${item.name[state.lang]}</h4><p class="text-zinc-500 text-lg font-bold">${t.currency}${item.price[state.lang]}</p></div><div class="flex items-center space-x-6 bg-zinc-900 p-2 rounded-2xl border border-zinc-800"><button onclick="updateQty(${item.id}, -1)" class="w-12 h-12 flex items-center justify-center text-red-500 bg-black rounded-xl"><i data-lucide="minus" class="w-6 h-6"></i></button><span class="text-2xl font-black w-8 text-center">${item.qty}</span><button onclick="updateQty(${item.id}, 1)" class="w-12 h-12 flex items-center justify-center text-green-500 bg-black rounded-xl"><i data-lucide="plus" class="w-6 h-6"></i></button></div><div class="ml-10 text-3xl font-black w-32 text-right text-amber-500">${t.currency}${(item.price[state.lang] * item.qty).toFixed(state.lang === 'en' ? 2 : 0)}</div></div>`).join('')}</div><div class="p-10 bg-black/60 border-t border-zinc-800 rounded-b-[4rem]"><div class="flex justify-between items-center mb-8 px-4"><span class="text-2xl font-bold text-zinc-600 uppercase tracking-widest">${t.total}</span><span class="text-6xl font-black text-amber-500">${t.currency}${totalPrice}</span></div><div class="flex space-x-6"><button onclick="setState({isCartOpen:false})" class="flex-1 py-8 bg-zinc-800 rounded-[2rem] text-2xl font-black uppercase tracking-widest">${t.back}</button><button onclick="setState({isCartOpen:false, step:'payment'})" class="flex-[2] py-8 bg-green-600 rounded-[2.5rem] text-3xl font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">${t.checkout}</button></div></div></div></div>` : ''}
                 `;
             }
-
-            // 2. Type Selection (用餐方式)
-            else if (state.step === 'typeSelection') {
-                app.innerHTML = `
-                    <div class="w-full h-full flex flex-col items-center justify-center bg-[#0a0a0a] p-12">
-                        <div class="mb-16">${getLogoHTML('small')}</div>
-                        <h2 class="text-5xl font-black mb-16 text-white/90 uppercase tracking-tighter">${t.selectOrderType}</h2>
-                        <div class="flex space-x-12">
-                            <div onclick="setState({orderType:'dineIn', step:'menu'})" class="w-[400px] h-[450px] bg-zinc-900 rounded-[3rem] flex flex-col items-center justify-center border-4 border-transparent hover:border-amber-500 transition-all cursor-pointer group shadow-2xl">
-                                <i data-lucide="utensils" class="w-32 h-32 mb-8 text-amber-500 group-hover:scale-110 transition-transform"></i>
-                                <span class="text-4xl font-black">${t.dineIn}</span>
-                            </div>
-                            <div onclick="setState({orderType:'takeOut', step:'menu'})" class="w-[400px] h-[450px] bg-zinc-900 rounded-[3rem] flex flex-col items-center justify-center border-4 border-transparent hover:border-amber-500 transition-all cursor-pointer group shadow-2xl">
-                                <i data-lucide="shopping-bag" class="w-32 h-32 mb-8 text-amber-500 group-hover:scale-110 transition-transform"></i>
-                                <span class="text-4xl font-black">${t.takeOut}</span>
-                            </div>
+            
+            // 4. Payment Screen
+            else if (state.step === 'payment') {
+                app.innerHTML = `<div class="w-full h-full flex flex-col bg-[#050505] p-16"><header class="flex justify-between items-center mb-12"><button onclick="setState({step:'menu'})" class="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center border border-zinc-800 hover:bg-zinc-800 transition-colors"><i data-lucide="x" class="w-10 h-10 text-zinc-600"></i></button><div class="flex flex-col items-center scale-90">${getLogoHTML('small')}<h2 class="text-2xl font-black uppercase mt-4 text-white/50 tracking-widest">${t.paymentTitle}</h2></div><div class="w-20"></div></header>
+                ${state.paymentStatus === 'processing' ? `<div class="flex-1 flex flex-col items-center justify-center"><div class="w-56 h-56 border-[12px] border-zinc-900 border-t-amber-500 rounded-full animate-spin mb-12 shadow-2xl"></div><p class="text-4xl font-black animate-pulse text-amber-500 uppercase tracking-[0.4em]">${t.processing}</p></div>` : `
+                <div class="flex-1 flex flex-col max-w-6xl mx-auto w-full"><div class="grid grid-cols-2 gap-12 flex-1 items-stretch"><div onclick="simulatePayment()" class="bg-zinc-900/40 rounded-[4rem] flex flex-col items-center justify-center p-12 border-4 border-zinc-800 hover:border-amber-500 transition-all cursor-pointer relative overflow-hidden shadow-2xl"><div class="w-64 h-64 bg-white rounded-[2.5rem] mb-10 flex items-center justify-center relative shadow-inner"><i data-lucide="qr-code" class="w-40 h-40 text-black"></i><div class="scan-line"></div></div><span class="text-4xl font-black uppercase">${t.scanQR}</span></div><div onclick="simulatePayment()" class="bg-zinc-900/40 rounded-[4rem] flex flex-col items-center justify-center p-12 border-4 border-zinc-800 hover:border-amber-500 transition-all cursor-pointer shadow-2xl"><div class="w-64 h-64 bg-white rounded-[2.5rem] mb-10 flex items-center justify-center shadow-inner"><i data-lucide="credit-card" class="w-40 h-40 text-black"></i></div><span class="text-4xl font-black uppercase">${t.tapCard}</span></div></div><div class="mt-12 bg-amber-500 text-black p-10 rounded-[3rem] flex justify-between items-center shadow-2xl"><div class="flex items-center"><div class="p-6 bg-black/10 rounded-2xl mr-8"><i data-lucide="shopping-cart" class="w-14 h-14"></i></div><div><p class="text-lg font-black uppercase opacity-60 tracking-tight">${t.total}</p><p class="text-6xl font-black leading-none tracking-tighter">${t.currency}${totalPrice}</p></div></div><div class="text-right pr-4"><p class="text-3xl font-black uppercase tracking-widest">${state.cart.reduce((a,b)=>a+b.qty,0)} ${t.items}</p></div></div></div>`}</div>`;
+            }
+            
+            // 5. Success Screen
+            else if (state.step === 'success') {
+                app.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center bg-black p-12 overflow-hidden">
+                    <div class="absolute inset-0 bg-amber-500/5 blur-[120px] rounded-full scale-125"></div>
+                    <div class="z-10 bg-zinc-900 w-full max-w-3xl rounded-[4rem] p-12 flex flex-col items-center text-center shadow-[0_0_80px_rgba(0,0,0,0.5)] border border-zinc-800 animate-in zoom-in-95 duration-500">
+                        <div class="w-40 h-40 bg-green-500/10 rounded-full flex items-center justify-center text-green-500 mb-8 shadow-[0_0_40px_rgba(34,197,94,0.15)]">
+                            <i data-lucide="check-circle-2" class="w-24 h-24"></i>
                         </div>
-                        <button onclick="setState({step:'landing'})" class="mt-16 text-zinc-500 font-bold text-xl flex items-center hover:text-white">
-                            <i data-lucide="arrow-left" class="mr-2"></i> ${t.back}
+                        <h2 class="text-5xl font-black mb-4 uppercase tracking-tighter text-white">${t.orderSuccess}</h2>
+                        <p class="text-xl font-bold text-zinc-500 mb-8 uppercase tracking-widest opacity-80">${t.receiptInfo}</p>
+                        
+                        <div class="w-full bg-black/50 p-10 rounded-[3rem] border-4 border-dashed border-zinc-800 mb-10 shadow-inner">
+                            <span class="text-xl font-black text-zinc-600 uppercase tracking-[0.5em] block mb-4">${t.orderNumber}</span>
+                            <span class="text-[140px] font-black text-amber-500 leading-none drop-shadow-[0_0_30px_rgba(245,158,11,0.2)]">#${state.orderId}</span>
+                        </div>
+
+                        <button onclick="resetSystem()" class="w-full py-8 bg-amber-500 rounded-[2.5rem] text-4xl font-black text-black uppercase tracking-[0.1em] shadow-2xl hover:bg-amber-400 active:scale-95 transition-all">
+                            OK
                         </button>
                     </div>
-                `;
+                </div>`;
             }
-
-            // 3. Main Menu (主選單)
-            else if (state.step === 'menu') {
-                app.innerHTML = `
-                    <div class="w-full h-full flex bg-zinc-950">
-                        <!-- Sidebar -->
-                        <aside class="w-56 border-r border-zinc-800 flex flex-col bg-black">
-                            <div class="p-8 flex justify-center">
-                                ${getLogoHTML('small')}
-                            </div>
-                            <nav class="flex-1 flex flex-col">
-                                ${Object.keys(t.categories).map(key => `
-                                    <button onclick="setState({activeCategory:'${key}'})" class="flex-1 flex flex-col items-center justify-center border-l-8 transition-all ${state.activeCategory === key ? 'border-amber-500 bg-zinc-900 text-amber-500' : 'border-transparent text-zinc-600 hover:text-white'}">
-                                        <span class="text-base font-black uppercase tracking-widest px-4 text-center">${t.categories[key]}</span>
-                                    </button>
-                                `).join('')}
-                            </nav>
-                            <button onclick="resetSystem()" class="p-8 text-zinc-700 hover:text-white flex flex-col items-center">
-                                <i data-lucide="refresh-cw" class="mb-2"></i>
-                                <span class="text-xs font-bold uppercase tracking-tighter">${t.back}</span>
-                            </button>
-                        </aside>
-
-                        <!-- Content Area -->
-                        <main class="flex-1 flex flex-col relative overflow-hidden">
-                            <header class="h-24 px-12 flex items-center justify-between border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md">
-                                <div class="flex items-center space-x-4">
-                                    <span class="bg-amber-500 text-black px-4 py-1 rounded text-xs font-black uppercase">${state.orderType === 'dineIn' ? t.dineIn : t.takeOut}</span>
-                                    <h2 class="text-3xl font-black uppercase tracking-tighter">${t.categories[state.activeCategory]}</h2>
-                                </div>
-                                <div class="flex space-x-2">
-                                    ${['zh', 'en', 'ja'].map(l => `
-                                        <button onclick="setState({lang:'${l}'})" class="w-12 h-12 rounded-full border-2 transition-all ${state.lang === l ? 'bg-amber-500 border-amber-500 text-black font-black' : 'border-zinc-700 text-zinc-500'} text-xs">
-                                            ${l.toUpperCase()}
-                                        </button>
-                                    `).join('')}
-                                </div>
-                            </header>
-
-                            <div class="flex-1 overflow-y-auto p-12 grid grid-cols-4 gap-8 content-start pb-48">
-                                ${MENU_DATA.filter(i => i.category === state.activeCategory).map(item => `
-                                    <div onclick="addToCart(${JSON.stringify(item).replace(/"/g, '&quot;')})" class="bg-zinc-900 rounded-[2.5rem] p-8 flex flex-col items-center text-center hover:scale-105 active:scale-95 transition-all border-2 border-transparent hover:border-amber-500 group cursor-pointer shadow-lg">
-                                        <div class="text-8xl mb-8 group-hover:rotate-6 transition-transform">${item.img}</div>
-                                        <h3 class="text-xl font-bold mb-2 h-14 leading-tight">${item.name[state.lang]}</h3>
-                                        <p class="text-3xl font-black text-amber-500">${t.currency}${item.price[state.lang]}</p>
-                                    </div>
-                                `).join('')}
-                            </div>
-
-                            <!-- Footer Cart Bar -->
-                            ${state.cart.length > 0 ? `
-                                <div class="absolute bottom-8 left-8 right-8 animate-in slide-in-from-bottom-20 duration-300">
-                                    <div onclick="setState({isCartOpen:true})" class="h-24 bg-green-600 rounded-3xl flex items-center justify-between px-10 shadow-[0_20px_50px_rgba(22,101,52,0.4)] cursor-pointer btn-pulse">
-                                        <div class="flex items-center">
-                                            <div class="relative mr-6">
-                                                <i data-lucide="shopping-cart" class="w-10 h-10"></i>
-                                                <span class="absolute -top-3 -right-3 bg-amber-500 text-black w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm border-2 border-green-600">${state.cart.reduce((a, b) => a + b.qty, 0)}</span>
-                                            </div>
-                                            <span class="text-3xl font-black uppercase tracking-widest">${t.viewOrder}</span>
-                                        </div>
-                                        <div class="text-4xl font-black">${t.currency}${totalPrice}</div>
-                                    </div>
-                                </div>
-                            ` : ''}
-                        </main>
-                    </div>
-
-                    <!-- Cart Modal -->
-                    ${state.isCartOpen ? `
-                        <div class="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/85 backdrop-blur-md">
-                            <div class="bg-zinc-900 w-full max-w-4xl rounded-[4rem] shadow-2xl flex flex-col max-h-[85vh] border border-zinc-800">
-                                <div class="p-10 border-b border-zinc-800 flex justify-between items-center">
-                                    <h3 class="text-4xl font-black flex items-center uppercase"><i data-lucide="shopping-cart" class="mr-6 text-amber-500 w-10 h-10"></i>${t.viewOrder}</h3>
-                                    <button onclick="setState({isCartOpen:false})" class="p-5 bg-zinc-800 rounded-full hover:bg-zinc-700 transition-colors"><i data-lucide="x" class="w-8 h-8"></i></button>
-                                </div>
-                                <div class="flex-1 overflow-y-auto p-10 space-y-6">
-                                    ${state.cart.map(item => `
-                                        <div class="flex items-center bg-zinc-950 p-6 rounded-[2.5rem] border border-zinc-800 shadow-inner">
-                                            <div class="text-6xl mr-8">${item.img}</div>
-                                            <div class="flex-1">
-                                                <h4 class="text-2xl font-bold">${item.name[state.lang]}</h4>
-                                                <p class="text-zinc-500 font-bold">${t.currency}${item.price[state.lang]}</p>
-                                            </div>
-                                            <div class="flex items-center space-x-6 bg-zinc-900 p-2 rounded-2xl border border-zinc-800">
-                                                <button onclick="updateQty(${item.id}, -1)" class="w-12 h-12 flex items-center justify-center text-red-500 bg-black rounded-xl hover:bg-zinc-800"><i data-lucide="minus"></i></button>
-                                                <span class="text-3xl font-black w-8 text-center">${item.qty}</span>
-                                                <button onclick="updateQty(${item.id}, 1)" class="w-12 h-12 flex items-center justify-center text-green-500 bg-black rounded-xl hover:bg-zinc-800"><i data-lucide="plus"></i></button>
-                                            </div>
-                                            <div class="ml-10 text-3xl font-black w-32 text-right text-amber-500">
-                                                ${t.currency}${(item.price[state.lang] * item.qty).toFixed(state.lang === 'en' ? 2 : 0)}
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                                <div class="p-10 bg-zinc-950 border-t border-zinc-800 rounded-b-[4rem]">
-                                    <div class="flex justify-between items-center mb-10 px-4">
-                                        <span class="text-2xl font-bold text-zinc-600 uppercase tracking-[0.3em]">${t.total}</span>
-                                        <span class="text-6xl font-black text-amber-500">${t.currency}${totalPrice}</span>
-                                    </div>
-                                    <div class="flex space-x-6">
-                                        <button onclick="setState({isCartOpen:false})" class="flex-1 py-8 bg-zinc-800 rounded-3xl text-2xl font-black uppercase tracking-widest hover:bg-zinc-700 transition-all">${t.back}</button>
-                                        <button onclick="setState({isCartOpen:false, step:'payment'})" class="flex-[2] py-8 bg-green-600 rounded-3xl text-3xl font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">${t.checkout}</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ` : ''}
-                `;
-            }
-
-            // 4. Payment Screen (支付畫面)
-            else if (state.step === 'payment') {
-                app.innerHTML = `
-                    <div class="w-full h-full flex flex-col bg-zinc-950 p-16">
-                        <header class="flex justify-between items-center mb-16">
-                            <button onclick="setState({step:'menu'})" class="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center border border-zinc-800 hover:bg-zinc-800"><i data-lucide="x" class="w-10 h-10 text-zinc-500"></i></button>
-                            <div class="flex flex-col items-center">
-                                ${getLogoHTML('small')}
-                                <h2 class="text-3xl font-black uppercase mt-4 text-white/90">${t.paymentTitle}</h2>
-                            </div>
-                            <div class="w-20"></div>
-                        </header>
-
-                        ${state.paymentStatus === 'processing' ? `
-                            <div class="flex-1 flex flex-col items-center justify-center">
-                                <div class="w-56 h-56 border-[16px] border-zinc-900 border-t-amber-500 rounded-full animate-spin mb-12 shadow-[0_0_80px_rgba(245,158,11,0.1)]"></div>
-                                <p class="text-4xl font-black animate-pulse text-amber-500 uppercase tracking-widest">${t.processing}</p>
-                            </div>
-                        ` : `
-                            <div class="flex-1 flex flex-col max-w-7xl mx-auto w-full">
-                                <div class="grid grid-cols-2 gap-12 flex-1 items-stretch">
-                                    <div onclick="startPayment()" class="bg-zinc-900 rounded-[4rem] flex flex-col items-center justify-center p-12 border-4 border-zinc-800 hover:border-amber-500 transition-all cursor-pointer group relative overflow-hidden shadow-2xl">
-                                        <div class="w-72 h-72 bg-white rounded-3xl mb-12 flex items-center justify-center relative shadow-[0_0_50px_rgba(255,255,255,0.05)]">
-                                            <i data-lucide="qr-code" class="w-48 h-48 text-black"></i>
-                                            <div class="scan-line"></div>
-                                        </div>
-                                        <span class="text-4xl font-black text-white/90 uppercase">${t.scanQR}</span>
-                                        <p class="mt-4 text-zinc-500 font-bold uppercase tracking-widest text-center">Apple Pay / Google Pay / Persona Pay</p>
-                                    </div>
-                                    <div onclick="startPayment()" class="bg-zinc-900 rounded-[4rem] flex flex-col items-center justify-center p-12 border-4 border-zinc-800 hover:border-amber-500 transition-all cursor-pointer group shadow-2xl">
-                                        <div class="w-72 h-72 bg-white rounded-3xl mb-12 flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.05)]">
-                                            <i data-lucide="credit-card" class="w-48 h-48 text-black"></i>
-                                        </div>
-                                        <span class="text-4xl font-black text-white/90 uppercase">${t.tapCard}</span>
-                                        <p class="mt-4 text-zinc-500 font-bold uppercase tracking-widest text-center">Visa / Mastercard / JCB / NFC</p>
-                                    </div>
-                                </div>
-                                <div class="mt-12 bg-amber-500 text-black p-10 rounded-[3rem] flex justify-between items-center shadow-[0_30px_60px_rgba(245,158,11,0.3)]">
-                                    <div class="flex items-center">
-                                        <div class="p-6 bg-black/10 rounded-3xl mr-8"><i data-lucide="shopping-cart" class="w-16 h-16"></i></div>
-                                        <div>
-                                            <p class="text-xl font-black uppercase opacity-60 tracking-tighter">${t.total}</p>
-                                            <p class="text-7xl font-black leading-none tracking-tighter">${t.currency}${totalPrice}</p>
-                                        </div>
-                                    </div>
-                                    <div class="text-right pr-4">
-                                        <p class="text-3xl font-black uppercase tracking-widest">${state.cart.reduce((a,b)=>a+b.qty, 0)} ${t.items}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        `}
-                    </div>
-                `;
-            }
-
-            // 5. Success Screen (完成)
-            else if (state.step === 'success') {
-                app.innerHTML = `
-                    <div class="w-full h-full flex flex-col items-center justify-center bg-black p-12 overflow-hidden">
-                        <div class="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] bg-zinc-900/40 rounded-full"></div>
-                        <div class="z-10 bg-zinc-900 w-full max-w-3xl rounded-[5rem] p-20 flex flex-col items-center text-center shadow-2xl border border-zinc-800 animate-in zoom-in-90 duration-500">
-                            <div class="w-44 h-44 bg-green-500/10 rounded-full flex items-center justify-center text-green-500 mb-10 shadow-[0_0_60px_rgba(34,197,94,0.15)]">
-                                <i data-lucide="check-circle-2" class="w-28 h-28"></i>
-                            </div>
-                            <h2 class="text-6xl font-black mb-4 text-white uppercase tracking-tighter">${t.orderSuccess}</h2>
-                            <p class="text-2xl font-bold text-zinc-500 mb-12 uppercase tracking-[0.2em]">${t.receiptInfo}</p>
-                            
-                            <div class="w-full bg-black/60 p-16 rounded-[4rem] border-4 border-dashed border-zinc-800 mb-12 shadow-inner">
-                                <span class="text-2xl font-black text-zinc-600 uppercase tracking-[0.5em] block mb-6">${t.orderNumber}</span>
-                                <span class="text-[160px] font-black text-amber-500 leading-none drop-shadow-[0_0_30px_rgba(245,158,11,0.2)]">#${state.orderId}</span>
-                            </div>
-
-                            <button onclick="resetSystem()" class="w-full py-10 bg-amber-500 rounded-[3rem] text-4xl font-black text-black uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all">
-                                OK
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // 初始化所有圖標
+            
             lucide.createIcons();
         }
 
-        // 初始化
-        window.onload = () => {
-            render();
-            // 監聽觸摸/滑鼠事件以重置閒置計時器
-            ['mousedown', 'touchstart', 'mousemove'].forEach(evt => {
-                window.addEventListener(evt, resetIdleTimer);
-            });
-        };
+        window.onload = () => { render(); ['mousedown', 'touchstart', 'mousemove'].forEach(e => window.addEventListener(e, resetIdleTimer)); };
     </script>
 </body>
 </html>
