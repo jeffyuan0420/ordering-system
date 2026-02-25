@@ -53,8 +53,9 @@
             filter: drop-shadow(0 0 15px rgba(0,0,0,0.8)); 
         }
 
+        /* 恢復自然漸層遮罩 */
         .bg-overlay {
-            background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.75));
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0.9) 100%);
         }
     </style>
 </head>
@@ -121,21 +122,22 @@
             const t = LANGUAGES[state.lang];
             const totalPrice = state.cart.reduce((s, i) => s + (i.price[state.lang] * i.qty), 0).toFixed(state.lang === 'en' ? 2 : 0);
 
+            // 1. Landing Screen (回歸原本精美的背景漢堡圖)
             if (state.step === 'landing') {
                 app.innerHTML = `<div onclick="setState({step:'typeSelection'})" class="w-full h-full flex flex-col items-center justify-center bg-black cursor-pointer overflow-hidden">
-                    <div class="absolute inset-0 opacity-60 bg-[url('https://images.unsplash.com/photo-1571091718767-18b5b1457add?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center scale-110"></div>
+                    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1571091718767-18b5b1457add?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center"></div>
                     <div class="absolute inset-0 bg-overlay"></div>
                     <div class="z-10 flex flex-col items-center">
-                        <div class="mb-16 floating">${getLogoHTML('large')}</div>
+                        <div class="mb-12 floating">${getLogoHTML('large')}</div>
                         <p class="text-2xl font-black tracking-[0.8em] animate-pulse text-white uppercase drop-shadow-lg">${t.start}</p>
                     </div>
                     <div class="absolute bottom-16 flex space-x-6 z-10">
-                        ${['zh', 'en', 'ja'].map(l => `<button onclick="event.stopPropagation(); setState({lang:'${l}'})" class="px-10 py-4 rounded-full border-2 transition-all ${state.lang === l ? 'bg-amber-500 border-amber-500 text-black font-black scale-105 shadow-xl' : 'border-white/40 bg-black/20 text-white/70 backdrop-blur-md'}">${l.toUpperCase()}</button>`).join('')}
+                        ${['zh', 'en', 'ja'].map(l => `<button onclick="event.stopPropagation(); setState({lang:'${l}'})" class="px-10 py-4 rounded-full border-2 transition-all ${state.lang === l ? 'bg-amber-500 border-amber-500 text-black font-black scale-105 shadow-xl' : 'border-white/40 bg-black/40 text-white/70 backdrop-blur-md'}">${l.toUpperCase()}</button>`).join('')}
                     </div>
                 </div>`;
             }
             
-            // 2. Type Selection (修正間距確保返回鍵可見)
+            // 2. Type Selection
             else if (state.step === 'typeSelection') {
                 app.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center bg-[#050505] p-6">
                     <div class="mt-2 mb-8 opacity-80 scale-75">${getLogoHTML('small')}</div>
@@ -150,7 +152,6 @@
                             <span class="text-3xl font-black">${t.takeOut}</span>
                         </div>
                     </div>
-                    <!-- 縮減上邊距 mt-8 -->
                     <button onclick="setState({step:'landing'})" class="mt-8 text-zinc-600 font-bold text-lg hover:text-white flex items-center transition-colors"><i data-lucide="arrow-left" class="mr-2"></i> ${t.back}</button>
                 </div>`;
             }
@@ -191,14 +192,14 @@
                 `;
             }
             
-            // 4. Payment Screen
+            // 4. Payment Screen (修正：解決黃框重疊問題)
             else if (state.step === 'payment') {
                 app.innerHTML = `
                 <div class="w-full h-full flex flex-col bg-[#050505] relative overflow-hidden">
-                    <header class="h-40 flex flex-col items-center justify-center flex-shrink-0">
+                    <header class="h-32 flex flex-col items-center justify-center flex-shrink-0 mt-6">
                         <button onclick="setState({step:'menu'})" class="absolute left-16 top-12 w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center border border-zinc-800 hover:bg-zinc-800 transition-colors"><i data-lucide="x" class="w-10 h-10 text-zinc-600"></i></button>
-                        <div class="scale-90">${getLogoHTML('small')}</div>
-                        <h2 class="text-2xl font-black uppercase mt-4 text-white/50 tracking-widest">${t.paymentTitle}</h2>
+                        <div class="scale-75">${getLogoHTML('small')}</div>
+                        <h2 class="text-xl font-black uppercase mt-2 text-white/40 tracking-widest">${t.paymentTitle}</h2>
                     </header>
                     
                     ${state.paymentStatus === 'processing' ? `
@@ -207,34 +208,38 @@
                             <p class="text-4xl font-black animate-pulse text-amber-500 uppercase tracking-[0.4em]">${t.processing}</p>
                         </div>
                     ` : `
-                        <div class="flex-1 px-16 pb-48">
-                            <div class="grid grid-cols-2 gap-12 h-[50vh] max-w-6xl mx-auto">
-                                <div onclick="simulatePayment()" class="bg-zinc-900/40 rounded-[4rem] flex flex-col items-center justify-center p-12 border-4 border-zinc-800 hover:border-amber-500 transition-all cursor-pointer relative overflow-hidden shadow-2xl">
-                                    <div class="w-56 h-56 bg-white rounded-[2.5rem] mb-10 flex items-center justify-center relative shadow-inner">
-                                        <i data-lucide="qr-code" class="w-32 h-32 text-black"></i>
+                        <div class="flex-1 px-16">
+                            <!-- 縮小選項容器高度並置中 -->
+                            <div class="grid grid-cols-2 gap-12 h-[42vh] max-w-5xl mx-auto">
+                                <div onclick="simulatePayment()" class="bg-zinc-900/40 rounded-[4rem] flex flex-col items-center justify-center p-10 border-4 border-zinc-800 hover:border-amber-500 transition-all cursor-pointer relative overflow-hidden shadow-2xl">
+                                    <div class="w-40 h-40 bg-white rounded-[2rem] mb-8 flex items-center justify-center relative shadow-inner">
+                                        <i data-lucide="qr-code" class="w-24 h-24 text-black"></i>
                                         <div class="scan-line"></div>
                                     </div>
-                                    <span class="text-4xl font-black uppercase">${t.scanQR}</span>
+                                    <span class="text-3xl font-black uppercase text-white/80">${t.scanQR}</span>
                                 </div>
-                                <div onclick="simulatePayment()" class="bg-zinc-900/40 rounded-[4rem] flex flex-col items-center justify-center p-12 border-4 border-zinc-800 hover:border-amber-500 transition-all cursor-pointer shadow-2xl">
-                                    <div class="w-56 h-56 bg-white rounded-[2.5rem] mb-10 flex items-center justify-center shadow-inner">
-                                        <i data-lucide="credit-card" class="w-32 h-32 text-black"></i>
+                                <div onclick="simulatePayment()" class="bg-zinc-900/40 rounded-[4rem] flex flex-col items-center justify-center p-10 border-4 border-zinc-800 hover:border-amber-500 transition-all cursor-pointer shadow-2xl">
+                                    <div class="w-40 h-40 bg-white rounded-[2rem] mb-8 flex items-center justify-center shadow-inner">
+                                        <i data-lucide="credit-card" class="w-24 h-24 text-black"></i>
                                     </div>
-                                    <span class="text-4xl font-black uppercase">${t.tapCard}</span>
+                                    <span class="text-3xl font-black uppercase text-white/80">${t.tapCard}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="absolute bottom-8 left-8 right-8 bg-amber-500 text-black p-10 rounded-[3rem] flex justify-between items-center shadow-2xl z-20">
-                            <div class="flex items-center">
-                                <div class="p-6 bg-black/10 rounded-2xl mr-8"><i data-lucide="shopping-cart" class="w-14 h-14"></i></div>
-                                <div>
-                                    <p class="text-lg font-black uppercase opacity-60 tracking-tight">${t.total}</p>
-                                    <p class="text-6xl font-black leading-none tracking-tighter">${t.currency}${totalPrice}</p>
+                        <!-- 鎖定底部，並增加邊距防止重疊 -->
+                        <div class="mb-8 px-10 flex-shrink-0">
+                            <div class="bg-amber-500 text-black p-8 rounded-[3rem] flex justify-between items-center shadow-2xl">
+                                <div class="flex items-center">
+                                    <div class="p-6 bg-black/10 rounded-2xl mr-8"><i data-lucide="shopping-cart" class="w-12 h-12"></i></div>
+                                    <div>
+                                        <p class="text-base font-black uppercase opacity-60 tracking-tight">${t.total}</p>
+                                        <p class="text-5xl font-black leading-none tracking-tighter">${t.currency}${totalPrice}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="text-right pr-4">
-                                <p class="text-3xl font-black uppercase tracking-widest">${state.cart.reduce((a,b)=>a+b.qty,0)} ${t.items}</p>
+                                <div class="text-right pr-4">
+                                    <p class="text-2xl font-black uppercase tracking-widest">${state.cart.reduce((a,b)=>a+b.qty,0)} ${t.items}</p>
+                                </div>
                             </div>
                         </div>
                     `}
